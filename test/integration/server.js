@@ -4653,7 +4653,9 @@ describe('Wallet service', function() {
         }];
         var txOpts = helpers.createProposalOpts(Model.TxProposalLegacy.Types.MULTIPLEOUTPUTS, outputs, TestData.copayers[0].privKey_1H_0, {
           message: 'some message',
-          customData: { "test": true }
+          customData: {
+            "test": true
+          }
         });
         server.createTxLegacy(txOpts, function(err, tx) {
           should.not.exist(err);
@@ -5437,14 +5439,33 @@ describe('Wallet service', function() {
       request.yields();
       helpers.getAuthServer(wallet.copayers[0].id, function(server) {
         should.exist(server);
-        server.pushNotificationsUnsubscribe({}, function(err, response) {
+        server.pushNotificationsUnsubscribe(null, function(err, response) {
           should.not.exist(err);
           var calls = request.getCalls();
           calls.length.should.equal(1);
           var args = _.map(calls, function(c) {
             return c.args[0];
           });
+
           args[0].body.user.should.contain(wallet.copayers[0].id);
+          done();
+        });
+      });
+    });
+
+    it('should unsubscribe all wallets from device to push notifications service', function(done) {
+      request.yields();
+      helpers.getAuthServer(wallet.copayers[0].id, function(server) {
+        should.exist(server);
+        server.pushNotificationsUnsubscribe('TOKEN_DEVICE', function(err, response) {
+          should.not.exist(err);
+          var calls = request.getCalls();
+          calls.length.should.equal(1);
+          var args = _.map(calls, function(c) {
+            return c.args[0];
+          });
+
+          args[0].body.token.should.contain('TOKEN_DEVICE');
           done();
         });
       });
